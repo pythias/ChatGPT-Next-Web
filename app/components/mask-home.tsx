@@ -108,6 +108,10 @@ export function MaskHome() {
 
     return (
         <div className={styles["new-chat"]}>
+            <div className={`no-dark ${styles["logo"]}`}>
+                <BotIcon />
+            </div>
+
             <div className={styles["title"]}>{Locale.NewChat.Title}</div>
             <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
 

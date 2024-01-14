@@ -129,7 +129,8 @@ const loadAsyncGoogleFont = () => {
 function Screen() {
   const config = useAppConfig();
   const location = useLocation();
-  const showSidebar = (location.pathname !== Path.HomeV1 && location.pathname === Path.Home);
+  const isHome = location.pathname === Path.Home;
+  const isMaskHome = location.pathname === Path.MaskHome;
   const isAuth = location.pathname === Path.Auth;
   const isMobileScreen = useMobileScreen();
   const shouldTightBorder =
@@ -139,27 +140,25 @@ function Screen() {
     loadAsyncGoogleFont();
   }, []);
 
+  // Determine the container class names
+  const containerClasses = `${styles.container} ${shouldTightBorder ? styles["tight-container"] : ""
+    } ${getLang() === "ar" ? styles["rtl-screen"] : ""}`;
+
+  // Determine the sidebar class names
+  const sidebarClasses = isHome ? styles["sidebar-show"] : "";
+
   return (
-    <div
-      className={
-        styles.container +
-        ` ${shouldTightBorder ? styles["tight-container"] : styles.container} ${
-          getLang() === "ar" ? styles["rtl-screen"] : ""
-        }`
-      }
-    >
+    <div className={containerClasses}>
       {isAuth ? (
-        <>
-          <AuthPage />
-        </>
+        <AuthPage />
+      ) : isMaskHome ? (
+        <MaskHome />
       ) : (
         <>
-          <SideBar className={showSidebar ? styles["sidebar-show"] : ""} />
-
+          <SideBar className={sidebarClasses} />
           <div className={styles["window-content"]} id={SlotID.AppBody}>
             <Routes>
               <Route path={Path.Home} element={<Chat />} />
-              <Route path={Path.HomeV1} element={<MaskHome />} />
               <Route path={Path.NewChat} element={<NewChat />} />
               <Route path={Path.Masks} element={<MaskPage />} />
               <Route path={Path.Chat} element={<Chat />} />
