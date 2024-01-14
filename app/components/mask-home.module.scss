@@ -2,8 +2,57 @@
 
 .mask-page {
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
+
+  .mask-cards {
+    display: flex;
+    margin-top: 5vh;
+    margin-bottom: 20px;
+    animation: slide-in ease 0.3s;
+
+    .mask-card {
+      padding: 20px 10px;
+      border: var(--border-in-light);
+      box-shadow: var(--card-shadow);
+      border-radius: 14px;
+      background-color: var(--white);
+      transform: scale(1);
+
+      &:first-child {
+        transform: rotate(-15deg) translateY(5px);
+      }
+
+      &:last-child {
+        transform: rotate(15deg) translateY(5px);
+      }
+    }
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: bolder;
+    margin-bottom: 1vh;
+    animation: slide-in ease 0.35s;
+  }
+
+  .sub-title {
+    animation: slide-in ease 0.4s;
+  }
+
+  .actions {
+    margin-top: 5vh;
+    margin-bottom: 2vh;
+    animation: slide-in ease 0.45s;
+    display: flex;
+    justify-content: center;
+    font-size: 12px;
+
+    .skip {
+      margin-left: 10px;
+    }
+  }
 
   .mask-page-body {
     padding: 20px;

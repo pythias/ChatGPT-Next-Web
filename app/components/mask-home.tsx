@@ -36,6 +36,7 @@ function MaskAvatar(props: { avatar: string; model?: ModelType }) {
     );
 }
 
+
 export function MaskHome() {
     const navigate = useNavigate();
 
@@ -51,6 +52,13 @@ export function MaskHome() {
     const [searchMasks, setSearchMasks] = useState<Mask[]>([]);
     const [searchText, setSearchText] = useState("");
     const masks = searchText.length > 0 ? searchMasks : allMasks;
+
+    const startChat = (mask?: Mask) => {
+        setTimeout(() => {
+            chatStore.newSession(mask);
+            navigate(Path.Chat);
+        }, 10);
+    };
 
     // refactored already, now it accurate
     const onSearch = (text: string) => {
@@ -69,26 +77,30 @@ export function MaskHome() {
         <ErrorBoundary>
             <div className={styles["mask-page"]}>
                 <div className="window-header">
-                    <div className="window-header-title">
-                        <div className="window-header-main-title">
-                            {Locale.Mask.Page.Title}
+                    <div className={styles["mask-cards"]}>
+                        <div className={styles["mask-card"]}>
+                            <EmojiAvatar avatar="1f606" size={24} />
                         </div>
-                        <div className="window-header-submai-title">
-                            {Locale.Mask.Page.SubTitle(allMasks.length)}
+                        <div className={styles["mask-card"]}>
+                            <EmojiAvatar avatar="1f916" size={24} />
+                        </div>
+                        <div className={styles["mask-card"]}>
+                            <EmojiAvatar avatar="1f479" size={24} />
                         </div>
                     </div>
 
-                    <div className="window-actions">
-                        <div className="window-action-button">
-                            <IconButton
-                                text={Locale.NewChat.Skip}
-                                onClick={() => startChat()}
-                                icon={<LightningIcon />}
-                                type="primary"
-                                shadow
-                                className={styles["skip"]}
-                            />
-                        </div>
+                    <div className={styles["title"]}>{Locale.NewChat.Title}</div>
+                    <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
+
+                    <div className={styles["actions"]}>
+                        <IconButton
+                            text={Locale.NewChat.Skip}
+                            onClick={() => startChat()}
+                            icon={<LightningIcon />}
+                            type="primary"
+                            shadow
+                            className={styles["skip"]}
+                        />
                     </div>
                 </div>
 
