@@ -15,8 +15,8 @@ export const OPENAI_BASE_URL = "https://api.openai.com";
 export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/";
 
 export enum Path {
-  Home = "/",
-  MaskHome = "/home",
+  Home = "/home",
+  Root = "/",
   Chat = "/chat",
   Settings = "/settings",
   NewChat = "/new-chat",

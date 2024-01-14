@@ -130,7 +130,7 @@ function Screen() {
   const config = useAppConfig();
   const location = useLocation();
   const isHome = location.pathname === Path.Home;
-  const isMaskHome = location.pathname === Path.MaskHome;
+  const isMaskHome = location.pathname === Path.Root;
   const isAuth = location.pathname === Path.Auth;
   const isMobileScreen = useMobileScreen();
   const shouldTightBorder =

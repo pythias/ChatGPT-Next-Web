@@ -4,6 +4,7 @@ import { ErrorBoundary } from "./error";
 import styles from "./mask.module.scss";
 import LightningIcon from "../icons/lightning.svg";
 import AddIcon from "../icons/add.svg";
+import { EmojiAvatar } from "./emoji";
 
 import { DEFAULT_MASK_AVATAR, Mask, useMaskStore } from "../store/mask";
 import {
