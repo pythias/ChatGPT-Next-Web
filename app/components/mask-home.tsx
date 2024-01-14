@@ -1,7 +1,7 @@
 import { IconButton } from "./button";
 import { ErrorBoundary } from "./error";
 
-import styles from "./mask.module.scss";
+import styles from "./mask-home.module.scss";
 import LightningIcon from "../icons/lightning.svg";
 import AddIcon from "../icons/add.svg";
 import { EmojiAvatar } from "./emoji";
@@ -77,32 +77,30 @@ export function MaskHome() {
     return (
         <ErrorBoundary>
             <div className={styles["mask-page"]}>
-                <div className="window-header">
-                    <div className={styles["mask-cards"]}>
-                        <div className={styles["mask-card"]}>
-                            <EmojiAvatar avatar="1f606" size={24} />
-                        </div>
-                        <div className={styles["mask-card"]}>
-                            <EmojiAvatar avatar="1f916" size={24} />
-                        </div>
-                        <div className={styles["mask-card"]}>
-                            <EmojiAvatar avatar="1f479" size={24} />
-                        </div>
+                <div className={styles["mask-cards"]}>
+                    <div className={styles["mask-card"]}>
+                        <EmojiAvatar avatar="1f606" size={24} />
                     </div>
-
-                    <div className={styles["title"]}>{Locale.NewChat.Title}</div>
-                    <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
-
-                    <div className={styles["actions"]}>
-                        <IconButton
-                            text={Locale.NewChat.Skip}
-                            onClick={() => startChat()}
-                            icon={<LightningIcon />}
-                            type="primary"
-                            shadow
-                            className={styles["skip"]}
-                        />
+                    <div className={styles["mask-card"]}>
+                        <EmojiAvatar avatar="1f916" size={24} />
                     </div>
+                    <div className={styles["mask-card"]}>
+                        <EmojiAvatar avatar="1f479" size={24} />
+                    </div>
+                </div>
+
+                <div className={styles["title"]}>{Locale.NewChat.Title}</div>
+                <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
+
+                <div className={styles["actions"]}>
+                    <IconButton
+                        text={Locale.NewChat.Skip}
+                        onClick={() => startChat()}
+                        icon={<LightningIcon />}
+                        type="primary"
+                        shadow
+                        className={styles["skip"]}
+                    />
                 </div>
 
                 <div className={styles["mask-page-body"]}>
