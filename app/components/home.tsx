@@ -152,7 +152,11 @@ function Screen() {
       {isAuth ? (
         <AuthPage />
       ) : isMaskHome ? (
-        <MaskHome />
+        <>
+            <div className={styles["window-content"]} id={SlotID.AppBody}>
+              <MaskHome />
+            </div>
+        </>
       ) : (
         <>
           <SideBar className={sidebarClasses} />

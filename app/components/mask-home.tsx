@@ -1,152 +1,159 @@
-import { useEffect, useRef, useState } from "react";
-import { Path, SlotID } from "../constant";
 import { IconButton } from "./button";
-import { EmojiAvatar } from "./emoji";
-import styles from "./new-chat.module.scss";
+import { ErrorBoundary } from "./error";
 
-import LeftIcon from "../icons/left.svg";
+import styles from "./mask.module.scss";
 import LightningIcon from "../icons/lightning.svg";
-import EyeIcon from "../icons/eye.svg";
+import AddIcon from "../icons/add.svg";
 
-import { useLocation, useNavigate } from "react-router-dom";
-import { Mask, useMaskStore } from "../store/mask";
-import Locale from "../locales";
-import { useAppConfig, useChatStore } from "../store";
-import { MaskAvatar } from "./mask";
-import { useCommand } from "../command";
-import { showConfirm } from "./ui-lib";
-import { BUILTIN_MASK_STORE } from "../masks";
+import { DEFAULT_MASK_AVATAR, Mask, useMaskStore } from "../store/mask";
+import {
+    ModelType,
+    useChatStore,
+} from "../store";
 
-function MaskItem(props: { mask: Mask; onClick?: () => void }) {
-    return (
-        <div className={styles["mask"]} onClick={props.onClick}>
-            <MaskAvatar
-                avatar={props.mask.avatar}
-                model={props.mask.modelConfig.model}
-            />
-            <div className={styles["mask-name"] + " one-line"}>{props.mask.name}</div>
-        </div>
+import {
+    Select,
+} from "./ui-lib";
+import { Avatar } from "./emoji";
+import Locale, { AllLangs, ALL_LANG_OPTIONS, Lang } from "../locales";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Path } from "../constant";
+
+// drag and drop helper function
+function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
+    const result = [...list];
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+}
+
+function MaskAvatar(props: { avatar: string; model?: ModelType }) {
+    return props.avatar !== DEFAULT_MASK_AVATAR ? (
+        <Avatar avatar={props.avatar} />
+    ) : (
+        <Avatar model={props.model} />
     );
 }
 
-function useMaskGroup(masks: Mask[]) {
-    const [groups, setGroups] = useState<Mask[][]>([]);
-
-    useEffect(() => {
-        const computeGroup = () => {
-            const appBody = document.getElementById(SlotID.AppBody);
-            if (!appBody || masks.length === 0) return;
-
-            const rect = appBody.getBoundingClientRect();
-            const maxWidth = rect.width;
-            const maxHeight = rect.height * 0.6;
-            const maskItemWidth = 120;
-            const maskItemHeight = 50;
-
-            const randomMask = () => masks[Math.floor(Math.random() * masks.length)];
-            let maskIndex = 0;
-            const nextMask = () => masks[maskIndex++ % masks.length];
-
-            const rows = Math.ceil(maxHeight / maskItemHeight);
-            const cols = Math.ceil(maxWidth / maskItemWidth);
-
-            const newGroups = new Array(rows)
-                .fill(0)
-                .map((_, _i) =>
-                    new Array(cols)
-                        .fill(0)
-                        .map((_, j) => (j < 1 || j > cols - 2 ? randomMask() : nextMask())),
-                );
-
-            setGroups(newGroups);
-        };
-
-        computeGroup();
-
-        window.addEventListener("resize", computeGroup);
-        return () => window.removeEventListener("resize", computeGroup);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    return groups;
-}
-
 export function MaskHome() {
-    const chatStore = useChatStore();
-    const maskStore = useMaskStore();
-
-    const masks = maskStore.getAll();
-    const groups = useMaskGroup(masks);
-
     const navigate = useNavigate();
-    const maskRef = useRef<HTMLDivElement>(null);
 
-    const startChat = (mask?: Mask) => {
-        setTimeout(() => {
-            chatStore.newSession(mask);
-            navigate(Path.Chat);
-        }, 10);
+    const maskStore = useMaskStore();
+    const chatStore = useChatStore();
+
+    const [filterLang, setFilterLang] = useState<Lang>();
+
+    const allMasks = maskStore
+        .getAll()
+        .filter((m) => !filterLang || m.lang === filterLang);
+
+    const [searchMasks, setSearchMasks] = useState<Mask[]>([]);
+    const [searchText, setSearchText] = useState("");
+    const masks = searchText.length > 0 ? searchMasks : allMasks;
+
+    // refactored already, now it accurate
+    const onSearch = (text: string) => {
+        setSearchText(text);
+        if (text.length > 0) {
+            const result = allMasks.filter((m) =>
+                m.name.toLowerCase().includes(text.toLowerCase()),
+            );
+            setSearchMasks(result);
+        } else {
+            setSearchMasks(allMasks);
+        }
     };
 
-    useCommand({
-        mask: (id) => {
-            try {
-                const mask = maskStore.get(id) ?? BUILTIN_MASK_STORE.get(id);
-                startChat(mask ?? undefined);
-            } catch {
-                console.error("[New Chat] failed to create chat from mask id=", id);
-            }
-        },
-    });
-
-    useEffect(() => {
-        if (maskRef.current) {
-            maskRef.current.scrollLeft =
-                (maskRef.current.scrollWidth - maskRef.current.clientWidth) / 2;
-        }
-    }, [groups]);
-
     return (
-        <div className={styles["new-chat"]}>
-            <div className={`no-dark ${styles["logo"]}`}>
-                <BotIcon />
-            </div>
+        <ErrorBoundary>
+            <div className={styles["mask-page"]}>
+                <div className="window-header">
+                    <div className="window-header-title">
+                        <div className="window-header-main-title">
+                            {Locale.Mask.Page.Title}
+                        </div>
+                        <div className="window-header-submai-title">
+                            {Locale.Mask.Page.SubTitle(allMasks.length)}
+                        </div>
+                    </div>
 
-            <div className={styles["title"]}>{Locale.NewChat.Title}</div>
-            <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
-
-            <div className={styles["actions"]}>
-                <IconButton
-                    text={Locale.NewChat.More}
-                    onClick={() => navigate(Path.Masks)}
-                    icon={<EyeIcon />}
-                    bordered
-                    shadow
-                />
-
-                <IconButton
-                    text={Locale.NewChat.Skip}
-                    onClick={() => startChat()}
-                    icon={<LightningIcon />}
-                    type="primary"
-                    shadow
-                    className={styles["skip"]}
-                />
-            </div>
-
-            <div className={styles["masks"]} ref={maskRef}>
-                {groups.map((masks, i) => (
-                    <div key={i} className={styles["mask-row"]}>
-                        {masks.map((mask, index) => (
-                            <MaskItem
-                                key={index}
-                                mask={mask}
-                                onClick={() => startChat(mask)}
+                    <div className="window-actions">
+                        <div className="window-action-button">
+                            <IconButton
+                                text={Locale.NewChat.Skip}
+                                onClick={() => startChat()}
+                                icon={<LightningIcon />}
+                                type="primary"
+                                shadow
+                                className={styles["skip"]}
                             />
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles["mask-page-body"]}>
+                    <div className={styles["mask-filter"]}>
+                        <input
+                            type="text"
+                            className={styles["search-bar"]}
+                            placeholder={Locale.Mask.Page.Search}
+                            autoFocus
+                            onInput={(e) => onSearch(e.currentTarget.value)}
+                        />
+                        <Select
+                            className={styles["mask-filter-lang"]}
+                            value={filterLang ?? Locale.Settings.Lang.All}
+                            onChange={(e) => {
+                                const value = e.currentTarget.value;
+                                if (value === Locale.Settings.Lang.All) {
+                                    setFilterLang(undefined);
+                                } else {
+                                    setFilterLang(value as Lang);
+                                }
+                            }}
+                        >
+                            <option key="all" value={Locale.Settings.Lang.All}>
+                                {Locale.Settings.Lang.All}
+                            </option>
+                            {AllLangs.map((lang) => (
+                                <option value={lang} key={lang}>
+                                    {ALL_LANG_OPTIONS[lang]}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    <div>
+                        {masks.map((m) => (
+                            <div className={styles["mask-item"]} key={m.id}>
+                                <div className={styles["mask-header"]}>
+                                    <div className={styles["mask-icon"]}>
+                                        <MaskAvatar avatar={m.avatar} model={m.modelConfig.model} />
+                                    </div>
+                                    <div className={styles["mask-title"]}>
+                                        <div className={styles["mask-name"]}>{m.name}</div>
+                                        <div className={styles["mask-info"] + " one-line"}>
+                                            {`${Locale.Mask.Item.Info(m.context.length)} / ${ALL_LANG_OPTIONS[m.lang]
+                                                } / ${m.modelConfig.model}`}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={styles["mask-actions"]}>
+                                    <IconButton
+                                        icon={<AddIcon />}
+                                        text={Locale.Mask.Item.Chat}
+                                        onClick={() => {
+                                            chatStore.newSession(m);
+                                            navigate(Path.Chat);
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         ))}
                     </div>
-                ))}
+                </div>
             </div>
-        </div>
+        </ErrorBoundary>
     );
 }
