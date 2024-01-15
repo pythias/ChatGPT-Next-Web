@@ -7,7 +7,7 @@ const serverConfig = getServerSideConfig();
 // Danger! Do not hard code any secret value here!
 // 警告！不要在这里写入任何敏感信息！
 const DANGER_CONFIG = {
-  needCode: serverConfig.needCode,
+  needLogin: serverConfig.needLogin,
   hideUserApiKey: serverConfig.hideUserApiKey,
   disableGPT4: serverConfig.disableGPT4,
   hideBalanceQuery: serverConfig.hideBalanceQuery,

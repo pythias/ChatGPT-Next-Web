@@ -8,6 +8,7 @@ import { getHeaders } from "../client/api";
 import { getClientConfig } from "../config/client";
 import { createPersistStore } from "../utils/store";
 import { ensure } from "../utils/clone";
+import bcrypt from 'bcryptjs';
 
 let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 
@@ -35,12 +36,17 @@ const DEFAULT_ACCESS_STATE = {
   googleApiVersion: "v1",
 
   // server config
-  needCode: true,
+  needLogin: true,
   hideUserApiKey: false,
   hideBalanceQuery: false,
   disableGPT4: false,
   disableFastLink: false,
   customModels: "",
+
+  // user config
+  users: new Map<string, string>(),
+  currentUser: "",
+  currentPassword: "",
 };
 
 export const useAccessStore = createPersistStore(
@@ -50,7 +56,7 @@ export const useAccessStore = createPersistStore(
     enabledAccessControl() {
       this.fetch();
 
-      return get().needCode;
+      return get().needLogin;
     },
 
     isValidOpenAI() {
@@ -65,18 +71,38 @@ export const useAccessStore = createPersistStore(
       return ensure(get(), ["googleApiKey"]);
     },
 
-    isAuthorized() {
-      this.fetch();
-
-      // has token or has code or disabled access control
+    isKeyValid() {
       return (
         this.isValidOpenAI() ||
         this.isValidAzure() ||
-        this.isValidGoogle() ||
-        !this.enabledAccessControl() ||
-        (this.enabledAccessControl() && ensure(get(), ["accessCode"]))
+        this.isValidGoogle()
       );
     },
+
+    isAuthorized() {
+      this.fetch();
+
+      if (!this.enabledAccessControl()) {
+        return true;
+      }
+
+      const user = get().currentUser;
+      const password = get().currentPassword;
+      const users = get().users;
+      console.log("[Config] check user", user, users);
+
+      if (!users.has(user)) {
+        return false;
+      }
+
+      const saved = users.get(user);
+      if (saved === undefined) {
+        return false;
+      }
+
+      return bcrypt.compareSync(password, saved);
+    },
+
     fetch() {
       if (fetchState > 0 || getClientConfig()?.buildMode === "export") return;
       fetchState = 1;

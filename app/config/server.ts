@@ -1,5 +1,6 @@
-import md5 from "spark-md5";
+import bcrypt from 'bcryptjs';
 import { DEFAULT_MODELS } from "../constant";
+import { ParamKeyValuePair } from "react-router-dom";
 
 declare global {
   namespace NodeJS {
@@ -7,7 +8,7 @@ declare global {
       PROXY_URL?: string; // docker only
 
       OPENAI_API_KEY?: string;
-      CODE?: string;
+      USERS?: string;
 
       BASE_URL?: string;
       OPENAI_ORG_ID?: string; // openai only
@@ -34,16 +35,23 @@ declare global {
   }
 }
 
-const ACCESS_CODES = (function getAccessCodes(): Set<string> {
-  const code = process.env.CODE;
+const USER_PASSWORDS = (function getUserPasswords() {
+  const users = process.env.USERS;
+  if (users == null) return new Map();
 
   try {
-    const codes = (code?.split(",") ?? [])
-      .filter((v) => !!v)
-      .map((v) => md5.hash(v.trim()));
-    return new Set(codes);
+    const map = new Map<string, string>();
+    users.split(",").map((v) => {
+      const [user, password] = v.trim().split(":");
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(password, salt);
+      map.set(user, hash);
+      return hash;
+    });
+    console.log("[Server Config] users:", map, map.get("t1"));
+    return map;
   } catch (e) {
-    return new Set();
+    return new Map();
   }
 })();
 
@@ -89,9 +97,8 @@ export const getServerSideConfig = () => {
     googleApiKey: process.env.GOOGLE_API_KEY,
     googleUrl: process.env.GOOGLE_URL,
 
-    needCode: ACCESS_CODES.size > 0,
-    code: process.env.CODE,
-    codes: ACCESS_CODES,
+    needLogin: USER_PASSWORDS && USER_PASSWORDS.size > 0,
+    users: USER_PASSWORDS,
 
     proxyUrl: process.env.PROXY_URL,
     isVercel: !!process.env.VERCEL,

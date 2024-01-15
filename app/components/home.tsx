@@ -25,7 +25,7 @@ import {
 } from "react-router-dom";
 import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
-import { AuthPage } from "./auth";
+import { KeysPage } from "./keys";
 import { getClientConfig } from "../config/client";
 import { ClientApi } from "../client/api";
 import { useAccessStore } from "../store";
@@ -38,6 +38,10 @@ export function Loading(props: { noLogo?: boolean }) {
     </div>
   );
 }
+
+const Login = dynamic(async () => (await import("./login")).Login, {
+  loading: () => <Loading noLogo />,
+});
 
 const Settings = dynamic(async () => (await import("./settings")).Settings, {
   loading: () => <Loading noLogo />,
@@ -129,9 +133,11 @@ const loadAsyncGoogleFont = () => {
 function Screen() {
   const config = useAppConfig();
   const location = useLocation();
+
   const isHome = location.pathname === Path.Home;
   const isMaskHome = location.pathname === Path.Root;
-  const isAuth = location.pathname === Path.Auth;
+  const isKeys = location.pathname === Path.Keys;
+  const isLogin = location.pathname === Path.Login;
   const isMobileScreen = useMobileScreen();
   const shouldTightBorder =
     getClientConfig()?.isApp || (config.tightBorder && !isMobileScreen);
@@ -147,10 +153,21 @@ function Screen() {
   // Determine the sidebar class names
   const sidebarClasses = isHome ? styles["sidebar-show"] : "";
 
+  const accessStore = useAccessStore();
+  if (!accessStore.isAuthorized() && !isLogin) {
+    return (
+      <div className={containerClasses}>
+        <Login />
+      </div>
+    );
+  }
+
   return (
     <div className={containerClasses}>
-      {isAuth ? (
-        <AuthPage />
+      {isKeys ? (
+        <KeysPage />
+      ) : isLogin ? (
+        <Login />
       ) : isMaskHome ? (
         <MaskHome />
       ) : (

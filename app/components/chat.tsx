@@ -880,9 +880,14 @@ function _Chat() {
     session.messages.at(0)?.content !== BOT_HELLO.content
   ) {
     const copiedHello = Object.assign({}, BOT_HELLO);
+    if (!accessStore.isKeyValid()) {
+      copiedHello.content = Locale.Error.Unauthorized;
+    }
+
     if (!accessStore.isAuthorized()) {
       copiedHello.content = Locale.Error.Unauthorized;
     }
+    
     context.push(copiedHello);
   }
 
